@@ -187,6 +187,44 @@ def render_results(y: np.ndarray, name: str, mime: str, raw: bytes, meta: dict, 
 def main() -> None:
     st.set_page_config(page_title="Quran Qari Classifier", page_icon="📖", layout="wide")
 
+    # make the sidebar-open chevron obvious
+    st.markdown(
+        """
+        <style>
+        [data-testid="stExpandSidebarButton"],
+        [data-testid="collapsedControl"] {
+            background: #2E8B57 !important;
+            color: #FFFFFF !important;
+            border-radius: 0 8px 8px 0 !important;
+            padding: 8px 10px !important;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2) !important;
+            top: 0.75rem !important;
+        }
+        [data-testid="stExpandSidebarButton"] svg,
+        [data-testid="collapsedControl"] svg {
+            color: #FFFFFF !important;
+            width: 22px !important;
+            height: 22px !important;
+        }
+        [data-testid="stExpandSidebarButton"]:hover,
+        [data-testid="collapsedControl"]:hover {
+            background: #226b43 !important;
+            transform: scale(1.05);
+            transition: transform 120ms ease;
+        }
+        [data-testid="stExpandSidebarButton"]::after,
+        [data-testid="collapsedControl"]::after {
+            content: " model info";
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     meta, model, device = load_artifacts()
 
     # ---- sidebar ---------------------------------------------------------
