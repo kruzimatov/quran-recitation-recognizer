@@ -272,27 +272,56 @@ def page_home(meta, model, device) -> None:
 
 def page_record(meta, model, device) -> None:
     st.subheader("🎤 Record recitation")
-    st.caption("Hit record, recite (or play recitation near the mic), stop. Model predicts the qari.")
-    try:
-        from streamlit_mic_recorder import mic_recorder
-    except ImportError:
-        st.error("`streamlit-mic-recorder` not installed. Run `pip install streamlit-mic-recorder`.")
+    st.caption("Tap the mic → speak/play recitation for at least 5 seconds → tap to stop. Model predicts the qari.")
+
+    # Shazam-style pulsing mic indicator
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAudioInput"] button {
+            background: #2E8B57 !important; color: white !important;
+            border-radius: 999px !important; padding: 12px 20px !important;
+            font-weight: 600 !important; box-shadow: 0 0 0 rgba(46,139,87,0.6);
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(46,139,87,0.55); }
+            70%  { box-shadow: 0 0 0 22px rgba(46,139,87,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,139,87,0); }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    audio_file = st.audio_input("Tap to record") if hasattr(st, "audio_input") else None
+
+    if audio_file is None:
+        # graceful fallback — older Streamlit
+        try:
+            from streamlit_mic_recorder import mic_recorder
+            rec = mic_recorder(start_prompt="🔴 Start recording", stop_prompt="⏹ Stop",
+                               just_once=False, use_container_width=True, format="wav", key="micrec")
+            if rec and rec.get("bytes"):
+                raw = rec["bytes"]
+                y = load_audio_bytes(raw, "recording.wav", meta["sr"])
+                render_results(y, "recording.wav", "audio/wav", raw, meta, model, device)
+                return
+        except ImportError:
+            pass
+        st.info("Waiting for recording. Grant mic permission when the browser asks.")
         return
 
-    audio = mic_recorder(
-        start_prompt="🔴 Start recording",
-        stop_prompt="⏹ Stop",
-        just_once=False,
-        use_container_width=True,
-        format="wav",
-        key="micrec",
-    )
-    if audio and "bytes" in audio and audio["bytes"]:
-        raw = audio["bytes"]
+    raw = audio_file.getvalue()
+    if not raw or len(raw) < 1000:
+        st.warning("Recording seems empty. Try again and speak into the mic.")
+        return
+
+    # animated "listening → analyzing" ribbon
+    with st.status("🎧 Listening… extracting mel spectrogram…", expanded=False) as status:
         y = load_audio_bytes(raw, "recording.wav", meta["sr"])
-        render_results(y, "recording.wav", "audio/wav", raw, meta, model, device)
-    else:
-        st.info("No recording yet — click **Start recording** above.")
+        status.update(label="🧠 CNN inferring…", state="running")
+    render_results(y, "recording.wav", "audio/wav", raw, meta, model, device)
 
 
 def page_gallery(meta) -> None:
