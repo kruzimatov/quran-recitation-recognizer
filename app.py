@@ -126,8 +126,18 @@ def main() -> None:
         return
 
     with st.spinner("Analyzing audio…"):
-        y, sr = librosa.load(io.BytesIO(uploaded.read()), sr=meta["sr"], mono=True)
-        st.audio(uploaded)
+        raw = uploaded.read()
+        try:
+            y, sr = librosa.load(io.BytesIO(raw), sr=meta["sr"], mono=True)
+        except Exception:
+            # write to temp file so audioread/ffmpeg backend can decode odd containers
+            import tempfile
+            suffix = "." + (uploaded.name.rsplit(".", 1)[-1].lower() if "." in uploaded.name else "bin")
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(raw)
+                tmp_path = tmp.name
+            y, sr = librosa.load(tmp_path, sr=meta["sr"], mono=True)
+        st.audio(raw, format=uploaded.type or "audio/mpeg")
         probs, n_clips = predict(y, meta, model, device)
 
     if n_clips == 0:
