@@ -437,6 +437,11 @@ def main() -> None:
             for h in st.session_state["history"]:
                 st.text(f"{h['when']}  {h['top'][:18]}\n  {h['conf']*100:.0f}% · {h['file'][:18]}")
 
+        st.divider()
+        with st.expander(f"Supported qaris ({len(meta['classes'])})", expanded=False):
+            for name in meta["classes"]:
+                st.text(f"• {name.replace('_', ' ')}")
+
     # ---- header ----
     st.title("📖 Quran Qari Classifier")
     st.caption(
