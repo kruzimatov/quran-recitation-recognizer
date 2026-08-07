@@ -294,30 +294,31 @@ def page_record(meta, model, device) -> None:
         unsafe_allow_html=True,
     )
 
-    audio_file = st.audio_input("Tap to record") if hasattr(st, "audio_input") else None
-
-    if audio_file is None:
-        # graceful fallback — older Streamlit
+    if hasattr(st, "audio_input"):
+        audio_file = st.audio_input("Tap to record")
+        if audio_file is None:
+            st.info("Waiting for recording. Grant mic permission when the browser asks, "
+                    "then tap the mic, speak for ≥ 5 s, and tap stop again.")
+            return
+        raw = audio_file.getvalue()
+    else:
+        # fallback for older Streamlit versions
         try:
             from streamlit_mic_recorder import mic_recorder
-            rec = mic_recorder(start_prompt="🔴 Start recording", stop_prompt="⏹ Stop",
-                               just_once=False, use_container_width=True, format="wav", key="micrec")
-            if rec and rec.get("bytes"):
-                raw = rec["bytes"]
-                y = load_audio_bytes(raw, "recording.wav", meta["sr"])
-                render_results(y, "recording.wav", "audio/wav", raw, meta, model, device)
-                return
         except ImportError:
-            pass
-        st.info("Waiting for recording. Grant mic permission when the browser asks.")
-        return
+            st.error("Recording requires Streamlit ≥ 1.36 or `streamlit-mic-recorder`.")
+            return
+        rec = mic_recorder(start_prompt="🔴 Start recording", stop_prompt="⏹ Stop",
+                           just_once=False, use_container_width=True, format="wav", key="micrec")
+        if not rec or not rec.get("bytes"):
+            st.info("Waiting for recording.")
+            return
+        raw = rec["bytes"]
 
-    raw = audio_file.getvalue()
     if not raw or len(raw) < 1000:
-        st.warning("Recording seems empty. Try again and speak into the mic.")
+        st.warning("Recording seems empty. Try again — speak louder or record longer.")
         return
 
-    # animated "listening → analyzing" ribbon
     with st.status("🎧 Listening… extracting mel spectrogram…", expanded=False) as status:
         y = load_audio_bytes(raw, "recording.wav", meta["sr"])
         status.update(label="🧠 CNN inferring…", state="running")
