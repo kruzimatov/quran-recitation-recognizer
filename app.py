@@ -439,75 +439,14 @@ def main() -> None:
 
     meta, model, device = load_artifacts()
 
-    # ---- sidebar navigation (full-width nav-pill buttons) ----
-    st.markdown(
-        """
-        <style>
-        section[data-testid="stSidebar"] div.stButton {
-            margin-bottom: 8px !important;
-        }
-        section[data-testid="stSidebar"] div.stButton > button {
-            width: 100% !important;
-            text-align: left !important;
-            padding: 14px 18px !important;
-            border-radius: 12px !important;
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            background: #EBE7D8 !important;
-            color: #1B2A20 !important;
-            border: 1px solid #D5CFBC !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-            transition: all 140ms ease !important;
-        }
-        section[data-testid="stSidebar"] div.stButton > button p {
-            font-size: 15px !important;
-            font-weight: 600 !important;
-            text-align: left !important;
-            margin: 0 !important;
-        }
-        section[data-testid="stSidebar"] div.stButton > button:hover {
-            background: #DED8C4 !important;
-            border-color: #C4BDA6 !important;
-            transform: translateX(2px);
-        }
-        section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
-            background: linear-gradient(135deg, #2E8B57 0%, #226b43 100%) !important;
-            color: #FFFFFF !important;
-            border-color: #2E8B57 !important;
-            box-shadow: 0 4px 12px rgba(46,139,87,0.35) !important;
-        }
-        section[data-testid="stSidebar"] div.stButton > button[kind="primary"] p {
-            color: #FFFFFF !important;
-        }
-        section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover {
-            transform: translateX(2px);
-            box-shadow: 0 6px 16px rgba(46,139,87,0.45) !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    NAV = [("home", "🏠  Home"), ("record", "🎤  Record"),
-           ("gallery", "📚  Gallery"), ("about", "ℹ️  About")]
-    if "page" not in st.session_state:
-        st.session_state["page"] = "home"
-
+    # ---- sidebar navigation ----
     with st.sidebar:
-        st.markdown(
-            "<div style='font-family: serif; font-size: 22px; font-weight: 700;"
-            " margin: 4px 0 14px; color:#1B2A20;'>📖 Quran Qari</div>",
-            unsafe_allow_html=True,
+        st.markdown("### 📖 Quran Qari")
+        nav = st.radio(
+            "Navigate",
+            options=["🏠 Home", "🎤 Record", "📚 Gallery", "ℹ️ About"],
+            label_visibility="collapsed",
         )
-        for key, label in NAV:
-            if st.button(
-                label,
-                key=f"nav_{key}",
-                type=("primary" if st.session_state["page"] == key else "secondary"),
-                use_container_width=True,
-            ):
-                st.session_state["page"] = key
-                st.rerun()
         st.divider()
 
         st.header("Model")
@@ -530,8 +469,6 @@ def main() -> None:
             for name in meta["classes"]:
                 st.text(f"• {name.replace('_', ' ')}")
 
-    page = st.session_state["page"]
-
     # ---- header ----
     st.title("📖 Quran Qari Classifier")
     st.caption(
@@ -539,11 +476,11 @@ def main() -> None:
         f"{len(meta['classes'])} qaris · test accuracy {meta['test_acc']*100:.1f}%"
     )
 
-    if page == "home":
+    if nav.startswith("🏠"):
         page_home(meta, model, device)
-    elif page == "record":
+    elif nav.startswith("🎤"):
         page_record(meta, model, device)
-    elif page == "gallery":
+    elif nav.startswith("📚"):
         page_gallery(meta)
     else:
         page_about(meta)
