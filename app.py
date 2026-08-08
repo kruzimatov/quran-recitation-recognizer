@@ -488,8 +488,6 @@ def main() -> None:
                 st.rerun()
         st.divider()
 
-    page = st.session_state["page"]
-
         st.header("Model")
         st.write("**Architecture:** 4-block CNN on mel-spectrograms")
         st.write("**Trainable params:** ~100 k")
@@ -509,6 +507,8 @@ def main() -> None:
         with st.expander(f"Supported qaris ({len(meta['classes'])})", expanded=False):
             for name in meta["classes"]:
                 st.text(f"• {name.replace('_', ' ')}")
+
+    page = st.session_state["page"]
 
     # ---- header ----
     st.title("📖 Quran Qari Classifier")
