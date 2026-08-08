@@ -272,35 +272,42 @@ def page_home(meta, model, device) -> None:
 
 def page_record(meta, model, device) -> None:
     st.subheader("🎤 Record recitation")
-    st.caption("Tap the mic → speak/play recitation for at least 5 seconds → tap to stop. Model predicts the qari.")
+    st.caption(
+        "Tap the mic → play the qari's recitation from your phone / speaker next to the laptop mic "
+        "(or recite yourself) for at least 5 seconds → tap to stop. Model predicts the qari."
+    )
     st.info(
         "**Tip.** Model was trained with mic-path augmentation (noise + reverb + EQ + low-pass), "
         "so it handles laptop-mic recordings reasonably well. For the cleanest possible test, "
         "still prefer the **📤 Upload** tab on the Home page with a downloaded mp3."
     )
 
-    # pulse ONLY the record/stop trigger; leave playback controls (play/download) alone
+    # big pulsing pill on ONLY the record/stop trigger (first button in the widget);
+    # never touches playback toolbar buttons that appear after recording.
     st.markdown(
         """
         <style>
-        [data-testid="stAudioInput"] button[aria-label="Record"],
-        [data-testid="stAudioInput"] button[aria-label="Stop recording"] {
+        [data-testid="stAudioInput"] button:first-of-type {
             background: #2E8B57 !important;
             color: white !important;
+            border-radius: 999px !important;
+            padding: 14px 22px !important;
+            font-weight: 600 !important;
             box-shadow: 0 0 0 rgba(46,139,87,0.6);
             animation: pulse 1.8s infinite;
         }
-        [data-testid="stAudioInput"] button[aria-label="Record"] svg,
-        [data-testid="stAudioInput"] button[aria-label="Stop recording"] svg {
+        [data-testid="stAudioInput"] button:first-of-type svg {
             color: white !important; fill: white !important;
+            width: 22px !important; height: 22px !important;
         }
-        [data-testid="stAudioInput"] button[aria-label="Record"]:hover,
-        [data-testid="stAudioInput"] button[aria-label="Stop recording"]:hover {
+        [data-testid="stAudioInput"] button:first-of-type:hover {
             background: #226b43 !important;
+            transform: scale(1.03);
+            transition: transform 120ms ease;
         }
         @keyframes pulse {
             0%   { box-shadow: 0 0 0 0 rgba(46,139,87,0.55); }
-            70%  { box-shadow: 0 0 0 14px rgba(46,139,87,0); }
+            70%  { box-shadow: 0 0 0 18px rgba(46,139,87,0); }
             100% { box-shadow: 0 0 0 0 rgba(46,139,87,0); }
         }
         </style>
@@ -311,8 +318,13 @@ def page_record(meta, model, device) -> None:
     if hasattr(st, "audio_input"):
         audio_file = st.audio_input("Tap to record")
         if audio_file is None:
-            st.info("Waiting for recording. Grant mic permission when the browser asks, "
-                    "then tap the mic, speak for ≥ 5 s, and tap stop again.")
+            st.info(
+                "Waiting for recording. Grant mic permission when the browser asks, "
+                "then tap the mic and **play the qari's recitation from your phone / speaker "
+                "next to the laptop mic** for at least 5 seconds, then tap stop. "
+                "You can also recite yourself — but the model was trained on famous qaris, "
+                "so playback of their recordings works best."
+            )
             return
         raw = audio_file.getvalue()
     else:
@@ -427,15 +439,56 @@ def main() -> None:
 
     meta, model, device = load_artifacts()
 
-    # ---- sidebar navigation ----
+    # ---- sidebar navigation (nav-pill buttons) ----
+    st.markdown(
+        """
+        <style>
+        .nav-pill { width: 100%; text-align: left !important; margin-bottom: 6px !important;
+                    padding: 10px 14px !important; border-radius: 10px !important;
+                    font-size: 15px !important; font-weight: 500 !important;
+                    background: transparent !important; color: #1B2A20 !important;
+                    border: 1px solid transparent !important; }
+        .nav-pill:hover { background: #DED8C4 !important; }
+        .nav-pill-active button { background: #2E8B57 !important; color: #FFFFFF !important;
+                                  box-shadow: 0 2px 8px rgba(46,139,87,0.25) !important; }
+        section[data-testid="stSidebar"] div.stButton > button {
+            width: 100%; text-align: left; margin-bottom: 6px;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 15px; font-weight: 500;
+            background: transparent; color: #1B2A20; border: 1px solid transparent;
+        }
+        section[data-testid="stSidebar"] div.stButton > button:hover {
+            background: #DED8C4; border-color: #DED8C4;
+        }
+        section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
+            background: #2E8B57 !important; color: white !important;
+            border-color: #2E8B57 !important;
+            box-shadow: 0 2px 8px rgba(46,139,87,0.25);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    NAV = [("home", "🏠  Home"), ("record", "🎤  Record"),
+           ("gallery", "📚  Gallery"), ("about", "ℹ️  About")]
+    if "page" not in st.session_state:
+        st.session_state["page"] = "home"
+
     with st.sidebar:
-        st.markdown("### 📖 Quran Qari")
-        page = st.radio(
-            "Navigate",
-            options=["🏠 Home", "🎤 Record", "📚 Gallery", "ℹ️ About"],
-            label_visibility="collapsed",
+        st.markdown(
+            "<div style='font-family: serif; font-size: 22px; font-weight: 700;"
+            " margin: 4px 0 14px; color:#1B2A20;'>📖 Quran Qari</div>",
+            unsafe_allow_html=True,
         )
+        for key, label in NAV:
+            if st.button(label, key=f"nav_{key}",
+                         type=("primary" if st.session_state["page"] == key else "secondary")):
+                st.session_state["page"] = key
+                st.rerun()
         st.divider()
+
+    page = st.session_state["page"]
 
         st.header("Model")
         st.write("**Architecture:** 4-block CNN on mel-spectrograms")
@@ -464,11 +517,11 @@ def main() -> None:
         f"{len(meta['classes'])} qaris · test accuracy {meta['test_acc']*100:.1f}%"
     )
 
-    if page.startswith("🏠"):
+    if page == "home":
         page_home(meta, model, device)
-    elif page.startswith("🎤"):
+    elif page == "record":
         page_record(meta, model, device)
-    elif page.startswith("📚"):
+    elif page == "gallery":
         page_gallery(meta)
     else:
         page_about(meta)
