@@ -500,8 +500,12 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         for key, label in NAV:
-            if st.button(label, key=f"nav_{key}",
-                         type=("primary" if st.session_state["page"] == key else "secondary")):
+            if st.button(
+                label,
+                key=f"nav_{key}",
+                type=("primary" if st.session_state["page"] == key else "secondary"),
+                use_container_width=True,
+            ):
                 st.session_state["page"] = key
                 st.rerun()
         st.divider()
