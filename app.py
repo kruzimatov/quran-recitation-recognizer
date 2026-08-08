@@ -439,31 +439,49 @@ def main() -> None:
 
     meta, model, device = load_artifacts()
 
-    # ---- sidebar navigation (nav-pill buttons) ----
+    # ---- sidebar navigation (full-width nav-pill buttons) ----
     st.markdown(
         """
         <style>
-        .nav-pill { width: 100%; text-align: left !important; margin-bottom: 6px !important;
-                    padding: 10px 14px !important; border-radius: 10px !important;
-                    font-size: 15px !important; font-weight: 500 !important;
-                    background: transparent !important; color: #1B2A20 !important;
-                    border: 1px solid transparent !important; }
-        .nav-pill:hover { background: #DED8C4 !important; }
-        .nav-pill-active button { background: #2E8B57 !important; color: #FFFFFF !important;
-                                  box-shadow: 0 2px 8px rgba(46,139,87,0.25) !important; }
+        section[data-testid="stSidebar"] div.stButton {
+            margin-bottom: 8px !important;
+        }
         section[data-testid="stSidebar"] div.stButton > button {
-            width: 100%; text-align: left; margin-bottom: 6px;
-            padding: 10px 14px; border-radius: 10px;
-            font-size: 15px; font-weight: 500;
-            background: transparent; color: #1B2A20; border: 1px solid transparent;
+            width: 100% !important;
+            text-align: left !important;
+            padding: 14px 18px !important;
+            border-radius: 12px !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            background: #EBE7D8 !important;
+            color: #1B2A20 !important;
+            border: 1px solid #D5CFBC !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+            transition: all 140ms ease !important;
+        }
+        section[data-testid="stSidebar"] div.stButton > button p {
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            text-align: left !important;
+            margin: 0 !important;
         }
         section[data-testid="stSidebar"] div.stButton > button:hover {
-            background: #DED8C4; border-color: #DED8C4;
+            background: #DED8C4 !important;
+            border-color: #C4BDA6 !important;
+            transform: translateX(2px);
         }
         section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
-            background: #2E8B57 !important; color: white !important;
+            background: linear-gradient(135deg, #2E8B57 0%, #226b43 100%) !important;
+            color: #FFFFFF !important;
             border-color: #2E8B57 !important;
-            box-shadow: 0 2px 8px rgba(46,139,87,0.25);
+            box-shadow: 0 4px 12px rgba(46,139,87,0.35) !important;
+        }
+        section[data-testid="stSidebar"] div.stButton > button[kind="primary"] p {
+            color: #FFFFFF !important;
+        }
+        section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover {
+            transform: translateX(2px);
+            box-shadow: 0 6px 16px rgba(46,139,87,0.45) !important;
         }
         </style>
         """,
