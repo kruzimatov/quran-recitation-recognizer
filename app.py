@@ -279,19 +279,29 @@ def page_record(meta, model, device) -> None:
         "still prefer the **📤 Upload** tab on the Home page with a downloaded mp3."
     )
 
-    # tint the mic control green; keep native size so it doesn't overflow the widget
+    # pulse ONLY the record/stop trigger; leave playback controls (play/download) alone
     st.markdown(
         """
         <style>
-        [data-testid="stAudioInput"] button {
+        [data-testid="stAudioInput"] button[aria-label="Record"],
+        [data-testid="stAudioInput"] button[aria-label="Stop recording"] {
             background: #2E8B57 !important;
             color: white !important;
+            box-shadow: 0 0 0 rgba(46,139,87,0.6);
+            animation: pulse 1.8s infinite;
         }
-        [data-testid="stAudioInput"] button:hover {
+        [data-testid="stAudioInput"] button[aria-label="Record"] svg,
+        [data-testid="stAudioInput"] button[aria-label="Stop recording"] svg {
+            color: white !important; fill: white !important;
+        }
+        [data-testid="stAudioInput"] button[aria-label="Record"]:hover,
+        [data-testid="stAudioInput"] button[aria-label="Stop recording"]:hover {
             background: #226b43 !important;
         }
-        [data-testid="stAudioInput"] button svg {
-            color: white !important; fill: white !important;
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(46,139,87,0.55); }
+            70%  { box-shadow: 0 0 0 14px rgba(46,139,87,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,139,87,0); }
         }
         </style>
         """,
