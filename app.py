@@ -279,20 +279,17 @@ def page_record(meta, model, device) -> None:
         "still prefer the **📤 Upload** tab on the Home page with a downloaded mp3."
     )
 
-    # Shazam-style pulsing mic indicator
+    # style the mic + playback controls without spilling over the waveform
     st.markdown(
         """
         <style>
         [data-testid="stAudioInput"] button {
             background: #2E8B57 !important; color: white !important;
-            border-radius: 999px !important; padding: 12px 20px !important;
-            font-weight: 600 !important; box-shadow: 0 0 0 rgba(46,139,87,0.6);
-            animation: pulse 1.8s infinite;
+            border-radius: 999px !important; padding: 10px 14px !important;
+            font-weight: 600 !important;
         }
-        @keyframes pulse {
-            0%   { box-shadow: 0 0 0 0 rgba(46,139,87,0.55); }
-            70%  { box-shadow: 0 0 0 22px rgba(46,139,87,0); }
-            100% { box-shadow: 0 0 0 0 rgba(46,139,87,0); }
+        [data-testid="stAudioInput"] button:hover {
+            background: #226b43 !important;
         }
         </style>
         """,
