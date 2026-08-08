@@ -273,11 +273,10 @@ def page_home(meta, model, device) -> None:
 def page_record(meta, model, device) -> None:
     st.subheader("🎤 Record recitation")
     st.caption("Tap the mic → speak/play recitation for at least 5 seconds → tap to stop. Model predicts the qari.")
-    st.warning(
-        "**Heads up.** The model was trained on clean studio recordings. Mic input adds room "
-        "reverb + codec artifacts, so predictions here are often wrong. For an accurate test, "
-        "download the mp3 and use the **📤 Upload** tab on the Home page. Recording works best "
-        "for **your own live recitation**, not phone-playback captured through the laptop mic."
+    st.info(
+        "**Tip.** Model was trained with mic-path augmentation (noise + reverb + EQ + low-pass), "
+        "so it handles laptop-mic recordings reasonably well. For the cleanest possible test, "
+        "still prefer the **📤 Upload** tab on the Home page with a downloaded mp3."
     )
 
     # Shazam-style pulsing mic indicator
