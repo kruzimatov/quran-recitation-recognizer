@@ -159,8 +159,8 @@ def render_results(y: np.ndarray, name: str, mime: str, raw: bytes, meta: dict, 
 
     # --- out-of-distribution gate ---
     # If top-1 probability low OR margin over top-2 tiny → likely NOT one of the 34 qaris.
-    MIN_CONF   = 0.40   # top-1 below this = unrecognised
-    MIN_MARGIN = 0.15   # top1 - top2 below this = ambiguous
+    MIN_CONF   = 0.22   # top-1 below this = unrecognised
+    MIN_MARGIN = 0.07   # top1 - top2 below this = ambiguous
     top1_conf  = float(top_scores[0])
     margin     = float(top_scores[0] - top_scores[1])
     recognised = top1_conf >= MIN_CONF and margin >= MIN_MARGIN
