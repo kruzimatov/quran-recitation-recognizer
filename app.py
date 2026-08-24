@@ -177,16 +177,11 @@ def render_results(y: np.ndarray, name: str, mime: str, raw: bytes, meta: dict, 
 
     if not recognised:
         st.error(
-            f"**Voice not confidently recognised.**  \n"
-            f"This may not be one of the {len(classes)} supported qaris, or the audio is "
-            f"too noisy / too short.  \n"
-            f"Best guess: **{top_names[0].replace('_', ' ')}** — but only {top1_conf*100:.1f}% "
-            f"confidence (margin over runner-up: {margin*100:.1f} pp)."
+            f"**Voice not recognised.** This audio does not match any of the "
+            f"{len(classes)} qaris the model was trained on. "
+            f"Try uploading a clear recording of one of the supported qaris."
         )
-        with st.expander("Show top-3 raw guesses anyway"):
-            c1, c2, c3 = st.columns(3)
-            for col, (n, s) in zip((c1, c2, c3), zip(top_names, top_scores)):
-                col.metric(n.replace("_", " "), f"{s*100:.1f}%")
+        return
     else:
         left, right = st.columns([2, 1])
         with left:
