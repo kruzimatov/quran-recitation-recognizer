@@ -157,27 +157,47 @@ def render_results(y: np.ndarray, name: str, mime: str, raw: bytes, meta: dict, 
     top_names = classes[top_idx]
     top_scores = mean_probs[top_idx]
 
+    # --- out-of-distribution gate ---
+    # If top-1 probability low OR margin over top-2 tiny → likely NOT one of the 34 qaris.
+    MIN_CONF   = 0.40   # top-1 below this = unrecognised
+    MIN_MARGIN = 0.15   # top1 - top2 below this = ambiguous
+    top1_conf  = float(top_scores[0])
+    margin     = float(top_scores[0] - top_scores[1])
+    recognised = top1_conf >= MIN_CONF and margin >= MIN_MARGIN
+
     # log recent prediction
     st.session_state.setdefault("history", [])
     st.session_state["history"].insert(0, {
         "when": datetime.now().strftime("%H:%M:%S"),
         "file": name,
-        "top": top_names[0],
-        "conf": float(top_scores[0]),
+        "top":  top_names[0] if recognised else "Unknown",
+        "conf": top1_conf,
     })
     st.session_state["history"] = st.session_state["history"][:5]
 
-    # Shazam card + circular gauge
-    left, right = st.columns([2, 1])
-    with left:
-        shazam_card(top_names[0].replace("_", " "), top_scores[0] * 100)
-    with right:
-        confidence_gauge(top_scores[0] * 100, "confidence")
+    if not recognised:
+        st.error(
+            f"**Voice not confidently recognised.**  \n"
+            f"This may not be one of the {len(classes)} supported qaris, or the audio is "
+            f"too noisy / too short.  \n"
+            f"Best guess: **{top_names[0].replace('_', ' ')}** — but only {top1_conf*100:.1f}% "
+            f"confidence (margin over runner-up: {margin*100:.1f} pp)."
+        )
+        with st.expander("Show top-3 raw guesses anyway"):
+            c1, c2, c3 = st.columns(3)
+            for col, (n, s) in zip((c1, c2, c3), zip(top_names, top_scores)):
+                col.metric(n.replace("_", " "), f"{s*100:.1f}%")
+    else:
+        left, right = st.columns([2, 1])
+        with left:
+            shazam_card(top_names[0].replace("_", " "), top1_conf * 100)
+        with right:
+            confidence_gauge(top1_conf * 100, "confidence")
 
-    with st.expander("Not this one? — see runner-ups"):
-        c1, c2 = st.columns(2)
-        c1.metric(top_names[1].replace("_", " "), f"{top_scores[1]*100:.1f}%")
-        c2.metric(top_names[2].replace("_", " "), f"{top_scores[2]*100:.1f}%")
+        with st.expander("Not this one? — see runner-ups"):
+            c1, c2 = st.columns(2)
+            c1.metric(top_names[1].replace("_", " "), f"{top_scores[1]*100:.1f}%")
+            c2.metric(top_names[2].replace("_", " "), f"{top_scores[2]*100:.1f}%")
 
     st.divider()
 
